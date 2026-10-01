@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mensagem</title>
+<body style="font-family: system-ui; max-width: 480px; margin: 40px auto; padding: 0 16px">
+  <textarea id="t" rows="6" style="width:100%"></textarea>
+  <button id="b">Enviar</button>
+  <p id="s"></p>
+  <script>
+    b.onclick = async () => {
+      if (!t.value.trim()) return;
+      const r = await fetch("https://ntfy.sh/esdras-msg-8f3k2q", { method: "POST", body: t.value });
+      s.textContent = r.ok ? "Enviado." : "Erro ao enviar.";
+      if (r.ok) t.value = "";
+    };
+  </script>
+</body>
+</html>
